@@ -59,12 +59,13 @@ EOT
     twitter_username                                             = optional(string)
     web_commit_signoff_required                                  = optional(bool)
   }))
-  # --- Unconfirmed validation candidates, derived from github_organization_settings's provider source ---
-  # Not auto-enabled: either a bespoke provider validator we can't safely translate,
-  # or a path that crosses a list-typed block (needs its own for_each wrapping).
-  # Review, translate into a real validation{} block above, and delete once confirmed.
-  # path: default_repository_permission
-  #   condition: contains(["read", "write", "admin", "none"], value)
-  #   message:   must be one of: read, write, admin, none
+  validation {
+    condition = alltrue([
+      for k, v in var.organization_settingses : (
+        v.default_repository_permission == null || (contains(["read", "write", "admin", "none"], v.default_repository_permission))
+      )
+    ])
+    error_message = "must be one of: read, write, admin, none"
+  }
 }
 
